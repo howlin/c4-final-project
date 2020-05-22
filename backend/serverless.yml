@@ -61,7 +61,6 @@ functions:
             schema:
               application/json: ${file(models/create-todo-request.json)}
 
-  # TODO: Configure this function
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
     events:
@@ -70,6 +69,9 @@ functions:
           authorizer: Auth
           cors: true
           path: todos/{todoId}
+          request:
+            schema:
+              application/json: ${file(models/update-todo-request.json)}
 
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler

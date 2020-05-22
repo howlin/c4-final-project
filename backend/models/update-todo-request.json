@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "create-todo",
+  "title": "update-todo",
   "type": "object",
   "properties": {
     "name": {
@@ -8,12 +8,17 @@
       "minLength": 2
     },
     "dueDate": {
-      "type": "string"
+      "type": "string",
+      "minLength": 8
+    },
+    "done": {
+      "type": "boolean"
     }
   },
   "required": [
     "name",
-    "dueDate"
+    "dueDate",
+    "done"
   ],
   "additionalProperties": false
 }
