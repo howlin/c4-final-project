@@ -3,8 +3,9 @@ import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { TodoItem } from '../models/TodoItem'
 import { createLogger } from '../utils/logger'
+import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 
-const logger = createLogger('getTodos')
+const logger = createLogger('Data layer')
 const XAWS = AWSXRay.captureAWS(AWS)
 
 export class TodoAccess {
@@ -44,6 +45,49 @@ export class TodoAccess {
     }).promise()
 
     return todo
+  }
+
+  async deleteTodo(todoId: string, userId: string): Promise<void> {
+
+    const params = {
+      TableName: this.todosTable,
+      Key: {
+        userId: userId,
+        todoId: todoId
+      }
+    }
+
+    logger.info('Delete', params)
+
+    await this.docClient.delete(params).promise()
+  }
+
+  async updateTodo(updateTodoRequest: UpdateTodoRequest, userId: string, todoId: string): Promise<void> {
+    const params = {
+      TableName: this.todosTable,
+      Key: {
+        userId: userId,
+        todoId: todoId
+      },
+      UpdateExpression: "set #todoName = :todoName, dueDate = :dueDate, done = :done",
+      ExpressionAttributeValues: {
+        ':todoName': updateTodoRequest.name,
+        ':dueDate': updateTodoRequest.dueDate,
+        ':done': updateTodoRequest.done
+      },
+      // I'm using ExpressionAttributeNames in this case to get over a 'Attribute name is a reserved keyword' error
+      ExpressionAttributeNames: {
+        "#todoName": "name"
+      }
+    }
+
+    logger.info('Update', params)
+
+    await this.docClient.update(params, (e, d) => {
+      logger.info('e ', e)
+      logger.info('d ', d)
+    }).promise()
+
   }
 
 }

@@ -3,7 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import { createLogger } from '../../utils/logger'
 import { deleteTodo } from '../../businessLogic/todos'
 
-const logger = createLogger('todoId')
+const logger = createLogger('delete Todo')
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   logger.info('Processing event: ', event)
