@@ -30,5 +30,13 @@ export async function createTodo(
     dueDate: createTodoRequest.dueDate,
     done: false
   })
+}
 
+export async function deleteTodo(todoId: string, jwtToken: string): Promise<void> {
+  logger.info('Business Logic Part: ', {
+    todoId, 
+    jwtToken
+  })
+  const userId = parseUserId(jwtToken)
+  await todoAccess.deleteTodo(todoId, userId)
 }
