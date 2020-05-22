@@ -7,10 +7,13 @@ import { getAllTodos } from '../../businessLogic/todos'
 const logger = createLogger('getTodos')
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  // TODO: Get all TODO items for a current user
   logger.info('Processing event', event)
 
-  const todos = await getAllTodos() 
+  const authorization = event.headers.Authorization
+  const split = authorization.split(' ')
+  const jwtToken = split[1]
+
+  const todos = await getAllTodos(jwtToken) 
 
   return {
     statusCode: 200,
