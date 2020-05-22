@@ -2,7 +2,9 @@ import * as AWS  from 'aws-sdk'
 import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { TodoItem } from '../models/TodoItem'
+import { createLogger } from '../utils/logger'
 
+const logger = createLogger('getTodos')
 const XAWS = AWSXRay.captureAWS(AWS)
 
 export class TodoAccess {
@@ -10,16 +12,28 @@ export class TodoAccess {
   constructor(
     private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
     private readonly todosTable = process.env.TODOS_TABLE,
-    /* private readonly indexName = process.env.TODO_INDEX_NAME*/ ) {}
+    private readonly todoIndex = process.env.TODOS_INDEX ) {}
 
-  async getAllTodos(): Promise<TodoItem[]> {
-    console.log('Getting all todos') // winston
+  async getAllTodos(userId: string): Promise<TodoItem[]> {
+    logger.info('1. Getting all todos') // winston
 
-    const result = await this.docClient.scan({
-      TableName: this.todosTable
-    }).promise()
+    const query = {
+      TableName: this.todosTable,
+      ScanIndexForward: false,
+      IndexName: this.todoIndex,
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+          ':userId': userId
+      }
+    }
 
+    logger.info('2. The query', query)
+
+    const result = await this.docClient.query(query).promise()
     const items = result.Items
+
+    logger.info('3. Query result', result)
+
     return items as TodoItem[]
   }
 

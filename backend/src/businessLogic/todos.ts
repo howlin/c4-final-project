@@ -4,11 +4,14 @@ import { TodoItem } from '../models/TodoItem'
 import { TodoAccess } from '../dataLayer/todoAccess'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { parseUserId } from '../auth/utils'
+import { createLogger } from '../utils/logger'
 
 const todoAccess = new TodoAccess()
+const logger = createLogger('todoId')
 
-export async function getAllTodos(): Promise<TodoItem[]> {
-  return todoAccess.getAllTodos()
+export async function getAllTodos(jwtToken: string): Promise<TodoItem[]> {
+  const userId = parseUserId(jwtToken)
+  return todoAccess.getAllTodos(userId)
 }
 
 export async function createTodo( 
