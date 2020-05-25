@@ -15,6 +15,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-west-1'}
 
+  tracing:
+    lambda: true
+    apiGateway: true
+
   environment:
     AUTH_0_JWKS_URL: https://dev-qqhc4z-0.eu.auth0.com/.well-known/jwks.json
     TODOS_TABLE: Todos-${self:provider.stage}
@@ -22,13 +26,20 @@ provider:
     SIGNED_URL_EXPIRATION: 300
     IMAGES_S3_BUCKET: how-sls-todos-images-${self:provider.stage}
 
-      
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - xray:PutTraceSegments
+        - xray:PutTelemetryRecords
+      Resource: "*"
+
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
   GetTodos:
     handler: src/lambda/http/getTodos.handler
+    iamRoleStatementsInherit: true
     events:
       - http:
           method: get
@@ -47,6 +58,7 @@ functions:
 
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
+    iamRoleStatementsInherit: true
     events:
       - http:
           method: post
@@ -64,6 +76,7 @@ functions:
 
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
+    iamRoleStatementsInherit: true
     events:
       - http:
           method: patch
@@ -81,6 +94,7 @@ functions:
 
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
+    iamRoleStatementsInherit: true
     events:
       - http:
           method: delete
@@ -95,6 +109,7 @@ functions:
 
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
+    iamRoleStatementsInherit: true
     events:
       - http:
           method: post
