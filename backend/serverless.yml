@@ -19,6 +19,8 @@ provider:
     AUTH_0_JWKS_URL: https://dev-qqhc4z-0.eu.auth0.com/.well-known/jwks.json
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX: TodosIndex
+    SIGNED_URL_EXPIRATION: 300
+    IMAGES_S3_BUCKET: how-sls-todos-images-${self:provider.stage}
 
   iamRoleStatements:
     - Effect: Allow
@@ -34,6 +36,11 @@ provider:
         - dynamodb:Query
         - dynamodb:DeleteItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX}
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
 
       
 functions:
@@ -82,13 +89,15 @@ functions:
           cors: true
           path: todos/{todoId}
 
-  # # TODO: Configure this function
-  # GenerateUploadUrl:
-  #   handler: src/lambda/http/generateUploadUrl.handler
-  #   events:
-  #     - http:
-  #         method: post
-  #         path: todos/{todoId}/attachment
+  # TODO: Configure this function
+  GenerateUploadUrl:
+    handler: src/lambda/http/generateUploadUrl.handler
+    events:
+      - http:
+          method: post
+          authorizer: Auth
+          cors: true
+          path: todos/{todoId}/attachment
 
 resources:
   Resources:
@@ -128,4 +137,22 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
+    TodoImageBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.IMAGES_S3_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
             

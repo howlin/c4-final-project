@@ -12,8 +12,11 @@ export class TodoAccess {
 
   constructor(
     private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
+    private readonly s3 = new XAWS.S3({signatureVersion: 'v4'}),
     private readonly todosTable = process.env.TODOS_TABLE,
-    private readonly todoIndex = process.env.TODOS_INDEX ) {}
+    private readonly todoIndex = process.env.TODOS_INDEX,
+    private readonly urlExpiration = process.env.SIGNED_URL_EXPIRATION,
+    private readonly bucketName = process.env.IMAGES_S3_BUCKET ) {}
 
   async getAllTodos(userId: string): Promise<TodoItem[]> {
     logger.info('1. Getting all todos') // winston
@@ -62,7 +65,7 @@ export class TodoAccess {
     await this.docClient.delete(params).promise()
   }
 
-  async updateTodo(updateTodoRequest: UpdateTodoRequest, userId: string, todoId: string): Promise<void> {
+  async updateTodo(updateTodoRequest: UpdateTodoRequest, userId: string, todoId: string) {
     const params = {
       TableName: this.todosTable,
       Key: {
@@ -83,11 +86,37 @@ export class TodoAccess {
 
     logger.info('Update', params)
 
-    await this.docClient.update(params, (e, d) => {
+    return await this.docClient.update(params, (e, d) => {
       logger.info('e ', e)
       logger.info('d ', d)
     }).promise()
 
+  }
+
+  async addImageToTodo(imageId: string, todoId: string, userId: string) {
+    const params = {
+      TableName: this.todosTable,
+      Key: {
+        userId: userId,
+        todoId: todoId
+      },
+      UpdateExpression: "set imageUrl = :imageUrl",
+      ExpressionAttributeValues: {
+        ':imageUrl': `https://${this.bucketName}.s3.amazonaws.com/${imageId}`
+      }
+    }
+
+    logger.info('addImageToTodo', params)
+    return await this.docClient.update(params).promise()
+  }
+
+  async generateUploadUrl(imageId: string) {
+    logger.info('generateUploadUrl', imageId)
+    return this.s3.getSignedUrl('putObject', {
+      Bucket: this.bucketName,
+      Key: imageId,
+      Expires: Number(this.urlExpiration)
+    })
   }
 
 }

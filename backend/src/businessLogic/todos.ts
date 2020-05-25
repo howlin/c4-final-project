@@ -39,14 +39,32 @@ export async function deleteTodo(todoId: string, jwtToken: string): Promise<void
     jwtToken
   })
   const userId = parseUserId(jwtToken)
-  await todoAccess.deleteTodo(todoId, userId)
+  return await todoAccess.deleteTodo(todoId, userId)
 }
 
 export async function updateTodo( 
   updateTodoRequest: UpdateTodoRequest, 
   todoId: string,
-  jwtToken: string ): Promise<void> 
+  jwtToken: string ) 
 {
   const userId = parseUserId(jwtToken)
-  await todoAccess.updateTodo(updateTodoRequest, userId, todoId)
+  return await todoAccess.updateTodo(updateTodoRequest, userId, todoId)
+}
+
+export async function generateUploadUrl(todoId: string, jwtToken: string) : Promise<string> {
+  const userId = parseUserId(jwtToken)
+  const imageId = uuid.v4()
+
+  logger.info('Business Logic Part: ', {
+    userId, 
+    imageId,
+    todoId,
+    jwtToken
+  })
+
+  const update = await todoAccess.addImageToTodo(imageId, todoId, userId)
+
+  logger.info('update result', update)
+
+  return await todoAccess.generateUploadUrl(imageId)
 }
