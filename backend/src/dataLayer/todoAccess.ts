@@ -28,6 +28,11 @@ export class TodoAccess {
       KeyConditionExpression: 'userId = :userId',
       ExpressionAttributeValues: {
           ':userId': userId
+      },
+      ProjectionExpression: 'todoId, createdAt, #todoName, dueDate, done, imageUrl',
+      // I'm using ExpressionAttributeNames in this case to get over a 'Attribute name is a reserved keyword' error
+      ExpressionAttributeNames: {
+        "#todoName": "name"
       }
     }
 
