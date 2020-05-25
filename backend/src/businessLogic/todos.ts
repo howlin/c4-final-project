@@ -5,10 +5,8 @@ import { TodoAccess } from '../dataLayer/todoAccess'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { parseUserId } from '../auth/utils'
-import { createLogger } from '../utils/logger'
 
 const todoAccess = new TodoAccess()
-const logger = createLogger('todoId')
 
 export async function getAllTodos(jwtToken: string): Promise<TodoItem[]> {
   const userId = parseUserId(jwtToken)
@@ -34,10 +32,6 @@ export async function createTodo(
 }
 
 export async function deleteTodo(todoId: string, jwtToken: string): Promise<void> {
-  logger.info('Business Logic Part: ', {
-    todoId, 
-    jwtToken
-  })
   const userId = parseUserId(jwtToken)
   return await todoAccess.deleteTodo(todoId, userId)
 }
@@ -55,16 +49,7 @@ export async function generateUploadUrl(todoId: string, jwtToken: string) : Prom
   const userId = parseUserId(jwtToken)
   const imageId = uuid.v4()
 
-  logger.info('Business Logic Part: ', {
-    userId, 
-    imageId,
-    todoId,
-    jwtToken
-  })
-
-  const update = await todoAccess.addImageToTodo(imageId, todoId, userId)
-
-  logger.info('update result', update)
+  await todoAccess.addImageToTodo(imageId, todoId, userId)
 
   return await todoAccess.generateUploadUrl(imageId)
 }

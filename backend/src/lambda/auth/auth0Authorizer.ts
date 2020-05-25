@@ -20,7 +20,6 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
   logger.info('Authorizing a user', event.authorizationToken)
   try {
     const jwtToken = await verifyToken(event.authorizationToken)
-    logger.info('User was authorized', jwtToken)
 
     return {
       principalId: jwtToken.sub,

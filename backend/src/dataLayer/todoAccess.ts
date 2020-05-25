@@ -19,7 +19,7 @@ export class TodoAccess {
     private readonly bucketName = process.env.IMAGES_S3_BUCKET ) {}
 
   async getAllTodos(userId: string): Promise<TodoItem[]> {
-    logger.info('1. Getting all todos') // winston
+    logger.info('Getting all todos') // winston
 
     const query = {
       TableName: this.todosTable,
@@ -31,12 +31,8 @@ export class TodoAccess {
       }
     }
 
-    logger.info('2. The query', query)
-
     const result = await this.docClient.query(query).promise()
     const items = result.Items
-
-    logger.info('3. Query result', result)
 
     return items as TodoItem[]
   }
@@ -60,8 +56,6 @@ export class TodoAccess {
       }
     }
 
-    logger.info('Delete', params)
-
     await this.docClient.delete(params).promise()
   }
 
@@ -84,12 +78,7 @@ export class TodoAccess {
       }
     }
 
-    logger.info('Update', params)
-
-    return await this.docClient.update(params, (e, d) => {
-      logger.info('e ', e)
-      logger.info('d ', d)
-    }).promise()
+    return await this.docClient.update(params).promise()
 
   }
 
@@ -106,12 +95,10 @@ export class TodoAccess {
       }
     }
 
-    logger.info('addImageToTodo', params)
     return await this.docClient.update(params).promise()
   }
 
   async generateUploadUrl(imageId: string) {
-    logger.info('generateUploadUrl', imageId)
     return this.s3.getSignedUrl('putObject', {
       Bucket: this.bucketName,
       Key: imageId,
